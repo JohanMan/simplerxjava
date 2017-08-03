@@ -5,11 +5,11 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.johan.library.simplerxjava.Consumer;
-import com.johan.library.simplerxjava.DataFactory;
+import com.johan.library.simplerxjava.datafactory.DataFactory;
 import com.johan.library.simplerxjava.DataProcessor;
 import com.johan.library.simplerxjava.Producer;
-
-import java.util.List;
+import com.johan.library.simplerxjava.scheduler.Scheduler;
+import com.johan.library.simplerxjava.scheduler.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -19,27 +19,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Producer.create(new DataFactory<Student>() {
+        Log.e(getClass().getName(), "origin thread name ---> " + Thread.currentThread().getName());
+        Producer.create(new DataFactory<String>() {
             @Override
-            public void create(Consumer<Student> consumer) {
-                Student student1 = new Student("小明", 20, "高数", "线性代数", "统计学");
-                Student student2 = new Student("晓晓", 21, "英语", "电子信息技术", "统计学");
-                consumer.onNext(student1);
-                consumer.onNext(student2);
+            public void create(Consumer<String> consumer) {
+                Log.e(getClass().getName(), "create thread name ---> " + Thread.currentThread().getName());
+                consumer.onNext("Hello");
+                consumer.onNext("World");
                 consumer.onCompleted();
             }
-        }).flapMap(new DataProcessor<Student, Producer<String>>() {
-            @Override
-            public Producer<String> process(Student data) {
-                return Producer.from(data.courses);
-            }
-        }).add(new Consumer<String>() {
+        }).produceOn(Schedulers.getWorkScheduler()).consumeOn(Schedulers.getMainScheduler()).add(new Consumer<String>() {
             @Override
             public void onCompleted() {
                 Log.e(getClass().getName(), "completed is called");
             }
             @Override
             public void onNext(String result) {
+                Log.e(getClass().getName(), "onNext thread name ---> " + Thread.currentThread().getName());
                 Log.e(getClass().getName(), "course name : " + result);
             }
             @Override

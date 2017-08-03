@@ -1,4 +1,6 @@
-package com.johan.library.simplerxjava;
+package com.johan.library.simplerxjava.datafactory;
+
+import com.johan.library.simplerxjava.Consumer;
 
 /**
  * Created by johan on 2017/8/2.
